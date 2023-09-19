@@ -1,9 +1,13 @@
 package main
 
-import "fmt"
+import (
+	// "fmt"
+    "excel/updater"
+)
 
 func main() {
 
-    fmt.Println(CENSUS_API_URL);
+    // fmt.Println(CENSUS_API_URL);
+
 
 }
