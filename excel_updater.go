@@ -91,9 +91,6 @@ func match_finder() {
 
 func excel_updater(id string, match string, exact string, address string, coordinates string, unk string, side string, state_id string, county string, group string, block string) {
 
-	fmt.Printf("| %v | %v | %v | %v | %v | %v | %v | %v | %v | %v | %v | ", id, match, exact, address, coordinates, unk, side, state_id, county, group, block)
-	fmt.Println(" ")
-
 	file, err := excelize.OpenFile("GeocodeResults_Main_File.xlsx")
 	if err != nil {
 		log.Fatal(err)
