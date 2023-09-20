@@ -8,6 +8,6 @@ func main() {
 
     // fmt.Println(CENSUS_API_URL);
 
-    excel_updater();
+    match_finder()
 
 }
