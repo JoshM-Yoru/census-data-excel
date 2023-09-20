@@ -1,4 +1,4 @@
-package excel
+package main
 
 import (
 	"fmt"
@@ -7,9 +7,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func updater() {
+func excel_updater() {
 	file, err := excelize.OpenFile("Results.xlsx")
 	if err != nil {
+        fmt.Println("wtf")
 		log.Fatal(err)
 	}
 
@@ -18,7 +19,9 @@ func updater() {
 		log.Fatal(err)
 	}
 
-    number_of_rows, err := file.GetRows("Sheet1")
+    fmt.Println(file.GetCellValue("GeocodeResults (3)", "B2"))
 
-    fmt.Println(number_of_rows);
+    number_of_rows, err := file.GetRows("GeocodeResults (3)")
+
+    fmt.Println(len(number_of_rows));
 }
