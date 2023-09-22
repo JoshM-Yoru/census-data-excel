@@ -5,6 +5,7 @@ import (
 
 func main() {
 
-    match_finder()
+    // match_finder()
+    census_request()
 
 }
