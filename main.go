@@ -6,6 +6,9 @@ import (
 func main() {
 
     // match_finder()
-    census_request()
+    // census_request()
+    // apiCheck()
+    // curlRequest()
+    csvConverter()
 
 }
