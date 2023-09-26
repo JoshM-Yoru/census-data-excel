@@ -9,6 +9,8 @@ import (
 )
 
 func curlRequest() {
+    fmt.Println("Querying Census.gov for address matches...")
+
     curl := "curl"
 	curlArgs := []string{"--form", "addressFile=@data.csv", "--form", "benchmark=Public_AR_Current", "--form", "vintage=Current_Current", "https://geocoding.geo.census.gov/geocoder/geographies/addressbatch", "--output", "Results.csv"}
 

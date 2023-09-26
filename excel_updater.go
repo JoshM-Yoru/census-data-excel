@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -8,6 +9,9 @@ import (
 )
 
 func match_finder() {
+
+    fmt.Println("Updating Main Excel table...")
+
 	file, err := excelize.OpenFile("Results.xlsx")
 	if err != nil {
 		log.Fatal(err)
@@ -88,6 +92,7 @@ func match_finder() {
 		}
 	}
 
+    fmt.Println("Updating Complete!")
 }
 
 func excel_updater(id string, match string, exact string, address string, coordinates string, unk string, side string, state_id string, county string, group string, block string) {

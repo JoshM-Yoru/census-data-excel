@@ -10,6 +10,9 @@ import (
 )
 
 func csvConverter() {
+
+    fmt.Println("Coverting csv result from Census.gov to an Excel file...")
+
 	xlsx := excelize.NewFile()
 
 	csvFileName := "Results.csv"
@@ -31,13 +34,9 @@ func csvConverter() {
 
 	for rowIndex, row := range csvMatrix {
 		for colIndex, cellValue := range row {
-			if cellValue == "PK_Id" {
-                break
-			}
 			if colIndex == 0 || colIndex == 8 || colIndex == 9 || colIndex == 10 || colIndex == 11 {
 				intCell, err := strconv.Atoi(cellValue)
 				if err != nil {
-					fmt.Println(cellValue)
 				}
 				cellName, _ := excelize.CoordinatesToCellName(colIndex+1, rowIndex+1)
 				xlsx.SetCellValue(sheetName, cellName, intCell)
