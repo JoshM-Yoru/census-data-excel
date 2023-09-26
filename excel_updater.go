@@ -10,9 +10,14 @@ import (
 
 func match_finder() {
 
-    fmt.Println("Updating Main Excel table...")
+	fmt.Println("Updating Main Excel table...")
 
 	file, err := excelize.OpenFile("Results.xlsx")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File.xlsx")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,6 +39,11 @@ func match_finder() {
 
 		if results_cell == "Match" {
 			id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			originalAddress, err := file.GetCellValue(sheet, "B"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -88,21 +98,17 @@ func match_finder() {
 				log.Fatal(err)
 			}
 
-			excel_updater(id, match, exact, address, coordinates, unk, side, state_id, county, group, block)
+			excel_updater(mainFile, id, originalAddress, match, exact, address, coordinates, unk, side, state_id, county, group, block)
 		}
 	}
 
-    fmt.Println("Updating Complete!")
+	mainFile.Save()
+	fmt.Println("Updating Complete!")
 }
 
-func excel_updater(id string, match string, exact string, address string, coordinates string, unk string, side string, state_id string, county string, group string, block string) {
+func excel_updater(file *excelize.File, id string, originalAddress string, match string, exact string, address string, coordinates string, unk string, side string, state_id string, county string, group string, block string) {
 
-	file, err := excelize.OpenFile("GeocodeResults_Main_File.xlsx")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-    sheet := "GeocodeResults (2)"
+	sheet := "GeocodeResults (2)"
 
 	rows, err := file.GetRows(sheet)
 	if err != nil {
@@ -111,6 +117,7 @@ func excel_updater(id string, match string, exact string, address string, coordi
 
 	number_of_rows := len(rows)
 
+	id_int, err := strconv.Atoi(id)
 	state_id_int, err := strconv.Atoi(state_id)
 	county_int, err := strconv.Atoi(county)
 	group_int, err := strconv.Atoi(group)
@@ -119,7 +126,7 @@ func excel_updater(id string, match string, exact string, address string, coordi
 	for i := 1; i <= number_of_rows; i++ {
 		results_cell, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Invalid cell: ", err)
 		}
 
 		if results_cell == id {
@@ -133,8 +140,19 @@ func excel_updater(id string, match string, exact string, address string, coordi
 			file.SetCellInt(sheet, "J"+strconv.Itoa(i), county_int)
 			file.SetCellInt(sheet, "K"+strconv.Itoa(i), group_int)
 			file.SetCellInt(sheet, "L"+strconv.Itoa(i), block_int)
+		} else {
+			file.SetCellInt(sheet, "A"+strconv.Itoa(number_of_rows+1), id_int)
+			file.SetCellStr(sheet, "B"+strconv.Itoa(number_of_rows+1), originalAddress)
+			file.SetCellStr(sheet, "C"+strconv.Itoa(number_of_rows+1), match)
+			file.SetCellStr(sheet, "D"+strconv.Itoa(number_of_rows+1), exact)
+			file.SetCellStr(sheet, "E"+strconv.Itoa(number_of_rows+1), address)
+			file.SetCellStr(sheet, "F"+strconv.Itoa(number_of_rows+1), coordinates)
+			file.SetCellStr(sheet, "G"+strconv.Itoa(number_of_rows+1), unk)
+			file.SetCellStr(sheet, "H"+strconv.Itoa(number_of_rows+1), side)
+			file.SetCellInt(sheet, "I"+strconv.Itoa(number_of_rows+1), state_id_int)
+			file.SetCellInt(sheet, "J"+strconv.Itoa(number_of_rows+1), county_int)
+			file.SetCellInt(sheet, "K"+strconv.Itoa(number_of_rows+1), group_int)
+			file.SetCellInt(sheet, "L"+strconv.Itoa(number_of_rows+1), block_int)
 		}
 	}
-
-	file.Save()
 }
