@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -31,11 +33,16 @@ func match_finder() {
 
 	number_of_rows := len(rows)
 
+    bar := progressbar.Default(int64(number_of_rows))
+
 	for i := 1; i <= number_of_rows; i++ {
 		results_cell, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
 		if err != nil {
 			log.Fatal(err)
 		}
+
+        bar.Add(1)
+        time.Sleep(40 * time.Millisecond)
 
 		if results_cell == "Match" {
 			id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
