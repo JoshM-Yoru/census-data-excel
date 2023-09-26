@@ -33,7 +33,7 @@ func match_finder() {
 
 	number_of_rows := len(rows)
 
-    bar := progressbar.Default(int64(number_of_rows))
+	bar := progressbar.Default(int64(number_of_rows))
 
 	for i := 1; i <= number_of_rows; i++ {
 		results_cell, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
@@ -41,8 +41,8 @@ func match_finder() {
 			log.Fatal(err)
 		}
 
-        bar.Add(1)
-        time.Sleep(40 * time.Millisecond)
+		bar.Add(1)
+		time.Sleep(40 * time.Millisecond)
 
 		if results_cell == "Match" {
 			id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
@@ -130,6 +130,8 @@ func excel_updater(file *excelize.File, id string, originalAddress string, match
 	group_int, err := strconv.Atoi(group)
 	block_int, err := strconv.Atoi(block)
 
+	found := false
+
 	for i := 1; i <= number_of_rows; i++ {
 		results_cell, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
 		if err != nil {
@@ -137,6 +139,7 @@ func excel_updater(file *excelize.File, id string, originalAddress string, match
 		}
 
 		if results_cell == id {
+			found = true
 			file.SetCellStr(sheet, "C"+strconv.Itoa(i), match)
 			file.SetCellStr(sheet, "D"+strconv.Itoa(i), exact)
 			file.SetCellStr(sheet, "E"+strconv.Itoa(i), address)
@@ -147,19 +150,21 @@ func excel_updater(file *excelize.File, id string, originalAddress string, match
 			file.SetCellInt(sheet, "J"+strconv.Itoa(i), county_int)
 			file.SetCellInt(sheet, "K"+strconv.Itoa(i), group_int)
 			file.SetCellInt(sheet, "L"+strconv.Itoa(i), block_int)
-		} else {
-			file.SetCellInt(sheet, "A"+strconv.Itoa(number_of_rows+1), id_int)
-			file.SetCellStr(sheet, "B"+strconv.Itoa(number_of_rows+1), originalAddress)
-			file.SetCellStr(sheet, "C"+strconv.Itoa(number_of_rows+1), match)
-			file.SetCellStr(sheet, "D"+strconv.Itoa(number_of_rows+1), exact)
-			file.SetCellStr(sheet, "E"+strconv.Itoa(number_of_rows+1), address)
-			file.SetCellStr(sheet, "F"+strconv.Itoa(number_of_rows+1), coordinates)
-			file.SetCellStr(sheet, "G"+strconv.Itoa(number_of_rows+1), unk)
-			file.SetCellStr(sheet, "H"+strconv.Itoa(number_of_rows+1), side)
-			file.SetCellInt(sheet, "I"+strconv.Itoa(number_of_rows+1), state_id_int)
-			file.SetCellInt(sheet, "J"+strconv.Itoa(number_of_rows+1), county_int)
-			file.SetCellInt(sheet, "K"+strconv.Itoa(number_of_rows+1), group_int)
-			file.SetCellInt(sheet, "L"+strconv.Itoa(number_of_rows+1), block_int)
 		}
+	}
+
+	if !found {
+		file.SetCellInt(sheet, "A"+strconv.Itoa(number_of_rows+1), id_int)
+		file.SetCellStr(sheet, "B"+strconv.Itoa(number_of_rows+1), originalAddress)
+		file.SetCellStr(sheet, "C"+strconv.Itoa(number_of_rows+1), match)
+		file.SetCellStr(sheet, "D"+strconv.Itoa(number_of_rows+1), exact)
+		file.SetCellStr(sheet, "E"+strconv.Itoa(number_of_rows+1), address)
+		file.SetCellStr(sheet, "F"+strconv.Itoa(number_of_rows+1), coordinates)
+		file.SetCellStr(sheet, "G"+strconv.Itoa(number_of_rows+1), unk)
+		file.SetCellStr(sheet, "H"+strconv.Itoa(number_of_rows+1), side)
+		file.SetCellInt(sheet, "I"+strconv.Itoa(number_of_rows+1), state_id_int)
+		file.SetCellInt(sheet, "J"+strconv.Itoa(number_of_rows+1), county_int)
+		file.SetCellInt(sheet, "K"+strconv.Itoa(number_of_rows+1), group_int)
+		file.SetCellInt(sheet, "L"+strconv.Itoa(number_of_rows+1), block_int)
 	}
 }
