@@ -13,7 +13,9 @@ func match_finder() {
 		log.Fatal(err)
 	}
 
-	rows, err := file.GetRows("GeocodeResults (3)")
+	sheet := "Sheet1"
+
+	rows, err := file.GetRows(sheet)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,63 +23,63 @@ func match_finder() {
 	number_of_rows := len(rows)
 
 	for i := 1; i <= number_of_rows; i++ {
-		results_cell, err := file.GetCellValue("GeocodeResults (3)", "C"+strconv.Itoa(i))
+		results_cell, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if results_cell == "Match" {
-			id, err := file.GetCellValue("GeocodeResults (3)", "A"+strconv.Itoa(i))
+			id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			match, err := file.GetCellValue("GeocodeResults (3)", "C"+strconv.Itoa(i))
+			match, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			exact, err := file.GetCellValue("GeocodeResults (3)", "D"+strconv.Itoa(i))
+			exact, err := file.GetCellValue(sheet, "D"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			address, err := file.GetCellValue("GeocodeResults (3)", "E"+strconv.Itoa(i))
+			address, err := file.GetCellValue(sheet, "E"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			coordinates, err := file.GetCellValue("GeocodeResults (3)", "F"+strconv.Itoa(i))
+			coordinates, err := file.GetCellValue(sheet, "F"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			unk, err := file.GetCellValue("GeocodeResults (3)", "G"+strconv.Itoa(i))
+			unk, err := file.GetCellValue(sheet, "G"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			side, err := file.GetCellValue("GeocodeResults (3)", "H"+strconv.Itoa(i))
+			side, err := file.GetCellValue(sheet, "H"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			state_id, err := file.GetCellValue("GeocodeResults (3)", "I"+strconv.Itoa(i))
+			state_id, err := file.GetCellValue(sheet, "I"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			county, err := file.GetCellValue("GeocodeResults (3)", "J"+strconv.Itoa(i))
+			county, err := file.GetCellValue(sheet, "J"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			group, err := file.GetCellValue("GeocodeResults (3)", "K"+strconv.Itoa(i))
+			group, err := file.GetCellValue(sheet, "K"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			block, err := file.GetCellValue("GeocodeResults (3)", "L"+strconv.Itoa(i))
+			block, err := file.GetCellValue(sheet, "L"+strconv.Itoa(i))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -95,7 +97,9 @@ func excel_updater(id string, match string, exact string, address string, coordi
 		log.Fatal(err)
 	}
 
-	rows, err := file.GetRows("GeocodeResults (2)")
+    sheet := "GeocodeResults (2)"
+
+	rows, err := file.GetRows(sheet)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,27 +107,27 @@ func excel_updater(id string, match string, exact string, address string, coordi
 	number_of_rows := len(rows)
 
 	state_id_int, err := strconv.Atoi(state_id)
-    county_int, err := strconv.Atoi(county)
-    group_int, err := strconv.Atoi(group)
-    block_int, err := strconv.Atoi(block)
+	county_int, err := strconv.Atoi(county)
+	group_int, err := strconv.Atoi(group)
+	block_int, err := strconv.Atoi(block)
 
 	for i := 1; i <= number_of_rows; i++ {
-		results_cell, err := file.GetCellValue("GeocodeResults (2)", "A"+strconv.Itoa(i))
+		results_cell, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if results_cell == id {
-			file.SetCellStr("GeocodeResults (2)", "C"+strconv.Itoa(i), match)
-			file.SetCellStr("GeocodeResults (2)", "D"+strconv.Itoa(i), exact)
-			file.SetCellStr("GeocodeResults (2)", "E"+strconv.Itoa(i), address)
-			file.SetCellStr("GeocodeResults (2)", "F"+strconv.Itoa(i), coordinates)
-			file.SetCellStr("GeocodeResults (2)", "G"+strconv.Itoa(i), unk)
-			file.SetCellStr("GeocodeResults (2)", "H"+strconv.Itoa(i), side)
-			file.SetCellInt("GeocodeResults (2)", "I"+strconv.Itoa(i), state_id_int)
-			file.SetCellInt("GeocodeResults (2)", "J"+strconv.Itoa(i), county_int)
-			file.SetCellInt("GeocodeResults (2)", "K"+strconv.Itoa(i), group_int)
-			file.SetCellInt("GeocodeResults (2)", "L"+strconv.Itoa(i), block_int)
+			file.SetCellStr(sheet, "C"+strconv.Itoa(i), match)
+			file.SetCellStr(sheet, "D"+strconv.Itoa(i), exact)
+			file.SetCellStr(sheet, "E"+strconv.Itoa(i), address)
+			file.SetCellStr(sheet, "F"+strconv.Itoa(i), coordinates)
+			file.SetCellStr(sheet, "G"+strconv.Itoa(i), unk)
+			file.SetCellStr(sheet, "H"+strconv.Itoa(i), side)
+			file.SetCellInt(sheet, "I"+strconv.Itoa(i), state_id_int)
+			file.SetCellInt(sheet, "J"+strconv.Itoa(i), county_int)
+			file.SetCellInt(sheet, "K"+strconv.Itoa(i), group_int)
+			file.SetCellInt(sheet, "L"+strconv.Itoa(i), block_int)
 		}
 	}
 

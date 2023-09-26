@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -11,7 +12,7 @@ import (
 func csvConverter() {
 	xlsx := excelize.NewFile()
 
-	csvFileName := "test.csv"
+	csvFileName := "Results.csv"
 	csvfile, err := os.Open(csvFileName)
 	if err != nil {
 		fmt.Println("Error opening CSV file:", err)
@@ -19,17 +20,35 @@ func csvConverter() {
 	}
 	defer csvfile.Close()
 
-	csvReader, err := csv.NewReader(csvfile).ReadAll()
+	csvReader := csv.NewReader(csvfile)
+	csvReader.FieldsPerRecord = -1
+	csvMatrix, err := csvReader.ReadAll()
+	if err != nil {
+		fmt.Println("Something went wrong! ", err)
+		os.Exit(0)
+	}
 	sheetName := "Sheet1"
 
-	for rowIndex, row := range csvReader {
+	for rowIndex, row := range csvMatrix {
 		for colIndex, cellValue := range row {
-			cellName, _ := excelize.CoordinatesToCellName(colIndex+1, rowIndex+1)
-			xlsx.SetCellValue(sheetName, cellName, cellValue)
+			if cellValue == "PK_Id" {
+                break
+			}
+			if colIndex == 0 || colIndex == 8 || colIndex == 9 || colIndex == 10 || colIndex == 11 {
+				intCell, err := strconv.Atoi(cellValue)
+				if err != nil {
+					fmt.Println(cellValue)
+				}
+				cellName, _ := excelize.CoordinatesToCellName(colIndex+1, rowIndex+1)
+				xlsx.SetCellValue(sheetName, cellName, intCell)
+			} else {
+				cellName, _ := excelize.CoordinatesToCellName(colIndex+1, rowIndex+1)
+				xlsx.SetCellValue(sheetName, cellName, cellValue)
+			}
 		}
 	}
 
-	xlsxFileName := "output.xlsx"
+	xlsxFileName := "Results.xlsx"
 	if err := xlsx.SaveAs(xlsxFileName); err != nil {
 		fmt.Println("Error saving XLSX file:", err)
 		return

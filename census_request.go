@@ -10,7 +10,7 @@ import (
 
 func curlRequest() {
     curl := "curl"
-	curlArgs := []string{"--form", "addressFile=@data.csv", "--form", "benchmark=Public_AR_Current", "--form", "vintage=Current_Current", "https://geocoding.geo.census.gov/geocoder/geographies/addressbatch", "--output", "Result.csv"}
+	curlArgs := []string{"--form", "addressFile=@data.csv", "--form", "benchmark=Public_AR_Current", "--form", "vintage=Current_Current", "https://geocoding.geo.census.gov/geocoder/geographies/addressbatch", "--output", "Results.csv"}
 
     cmd := exec.Command(curl, curlArgs...)
 
