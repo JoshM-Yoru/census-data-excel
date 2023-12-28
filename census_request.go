@@ -103,3 +103,4 @@ func httpFilePost() {
 		fmt.Println("Error uploading file. Status code:", res.StatusCode)
 	}
 }
+

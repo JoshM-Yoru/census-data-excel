@@ -1,221 +1,48 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/xuri/excelize/v2"
 )
-
-// func match_finder() {
-//
-// 	fmt.Println("Updating Main Excel table...")
-//
-// 	file, err := excelize.OpenFile("Results.xlsx")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File.xlsx")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	sheet := "Sheet1"
-//
-// 	rows, err := file.GetRows(sheet)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	numberOfRows := len(rows)
-//
-//     mainMap := mapConverter(mainFile)
-//
-// 	bar := progressbar.Default(int64(numberOfRows))
-//     defer bar.Finish()
-//
-// 	for i := 1; i <= numberOfRows; i++ {
-// 		results_cell, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-//
-// 		bar.Add(1)
-// 		time.Sleep(40 * time.Millisecond)
-//
-// 		if results_cell == "Match" {
-// 			id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			originalAddress, err := file.GetCellValue(sheet, "B"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			match, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			exact, err := file.GetCellValue(sheet, "D"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			address, err := file.GetCellValue(sheet, "E"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			coordinates, err := file.GetCellValue(sheet, "F"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			unk, err := file.GetCellValue(sheet, "G"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			side, err := file.GetCellValue(sheet, "H"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			state_id, err := file.GetCellValue(sheet, "I"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			county, err := file.GetCellValue(sheet, "J"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			group, err := file.GetCellValue(sheet, "K"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			block, err := file.GetCellValue(sheet, "L"+strconv.Itoa(i))
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-//
-// 			excel_updater_map(mainFile, mainMap, id, originalAddress, match, exact, address, coordinates, unk, side, state_id, county, group, block)
-// 		}
-// 	}
-//
-// 	mainFile.Save()
-// 	fmt.Println("Updating Complete!")
-// }
-//
-// func excel_updater_map(file *excelize.File, mapToCheck map[int]int, id string, originalAddress string, match string, exact string, address string, coordinates string, unk string, side string, state_id string, county string, group string, block string) {
-//
-// 	sheet := "GeocodeResults (2)"
-//
-// 	rows, err := file.GetRows(sheet)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	numberOfRows := len(rows)
-//
-// 	id_int, err := strconv.Atoi(id)
-// 	state_id_int, err := strconv.Atoi(state_id)
-// 	county_int, err := strconv.Atoi(county)
-// 	group_int, err := strconv.Atoi(group)
-// 	block_int, err := strconv.Atoi(block)
-//
-// 	if row, ok := mapToCheck[id_int]; ok {
-// 		file.SetCellStr(sheet, "C"+strconv.Itoa(row), match)
-// 		file.SetCellStr(sheet, "D"+strconv.Itoa(row), exact)
-// 		file.SetCellStr(sheet, "E"+strconv.Itoa(row), address)
-// 		file.SetCellStr(sheet, "F"+strconv.Itoa(row), coordinates)
-// 		file.SetCellStr(sheet, "G"+strconv.Itoa(row), unk)
-// 		file.SetCellStr(sheet, "H"+strconv.Itoa(row), side)
-// 		file.SetCellInt(sheet, "I"+strconv.Itoa(row), state_id_int)
-// 		file.SetCellInt(sheet, "J"+strconv.Itoa(row), county_int)
-// 		file.SetCellInt(sheet, "K"+strconv.Itoa(row), group_int)
-// 		file.SetCellInt(sheet, "L"+strconv.Itoa(row), block_int)
-// 	} else {
-// 		file.SetCellInt(sheet, "A"+strconv.Itoa(numberOfRows+1), id_int)
-// 		file.SetCellStr(sheet, "B"+strconv.Itoa(numberOfRows+1), originalAddress)
-// 		file.SetCellStr(sheet, "C"+strconv.Itoa(numberOfRows+1), match)
-// 		file.SetCellStr(sheet, "D"+strconv.Itoa(numberOfRows+1), exact)
-// 		file.SetCellStr(sheet, "E"+strconv.Itoa(numberOfRows+1), address)
-// 		file.SetCellStr(sheet, "F"+strconv.Itoa(numberOfRows+1), coordinates)
-// 		file.SetCellStr(sheet, "G"+strconv.Itoa(numberOfRows+1), unk)
-// 		file.SetCellStr(sheet, "H"+strconv.Itoa(numberOfRows+1), side)
-// 		file.SetCellInt(sheet, "I"+strconv.Itoa(numberOfRows+1), state_id_int)
-// 		file.SetCellInt(sheet, "J"+strconv.Itoa(numberOfRows+1), county_int)
-// 		file.SetCellInt(sheet, "K"+strconv.Itoa(numberOfRows+1), group_int)
-// 		file.SetCellInt(sheet, "L"+strconv.Itoa(numberOfRows+1), block_int)
-// 	}
-// }
-//
-// func mapConverter(file *excelize.File) map[int]int {
-// 	sheet := "GeocodeResults (2)"
-//
-// 	rows, err := file.GetRows(sheet)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	numberOfRows := len(rows)
-//
-// 	mainMap := make(map[int]int)
-//
-// 	for i := 1; i <= numberOfRows; i++ {
-// 		results_cell, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
-// 		if err != nil {
-// 			log.Fatal("Invalid cell: ", err)
-// 		}
-// 		if results_cell != "PK_Id" {
-// 			key, err := strconv.Atoi(results_cell)
-// 			if err != nil {
-// 				log.Fatal("Not a string: ", err)
-// 			}
-// 			mainMap[key] = i
-// 		}
-// 	}
-//
-// 	return mainMap
-// }
-
 var mainMap map[int]int
 
-func matchFinderConcurrent() {
+func updater() {
 
 	fmt.Println("Updating Main Excel table...")
 
-	file, err := excelize.OpenFile("Results.xlsx")
+	csvFileName := "Results.csv"
+	csvfile, err := os.Open(csvFileName)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error opening CSV file:", err)
+		return
+	}
+	defer csvfile.Close()
+
+	csvReader := csv.NewReader(csvfile)
+	csvReader.FieldsPerRecord = -1
+	csvMatrix, err := csvReader.ReadAll()
+	if err != nil {
+		fmt.Println("Something went wrong! ", err)
+		os.Exit(0)
 	}
 
-	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File - Copy(1).xlsx")
+	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File - Copy(3).xlsx")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	sheet := "Sheet1"
 
-	rows, err := file.GetRows(sheet)
-	if err != nil {
-		log.Fatal(err)
-	}
+	numberOfRows := len(csvMatrix)
 
-	numberOfRows := len(rows)
-
-	mainMap = mapConverter(mainFile)
+	mainMap = createMainFileMap(mainFile)
 
 	bar := progressbar.Default(int64(numberOfRows))
 	defer bar.Finish()
@@ -227,10 +54,10 @@ func matchFinderConcurrent() {
 		index int
 	}, numberOfRows)
 
-	for i := 1; i <= numberOfRows; i++ {
+	for i := 0; i < numberOfRows; i++ {
 		wg.Add(1)
 
-		go procssRow(&wg, file, sheet, i, resultsCh)
+		go processRow(&wg, &csvMatrix, sheet, i, resultsCh)
 	}
 
 	go func() {
@@ -238,33 +65,28 @@ func matchFinderConcurrent() {
 		close(resultsCh)
 	}()
 
-	go updateMainFile(mainFile, file, resultsCh)
+	go findMatches(mainFile, &csvMatrix, resultsCh)
 
 	for i := 1; i <= numberOfRows; i++ {
 		bar.Add(1)
-		time.Sleep(40 * time.Millisecond)
 	}
 
 	mainFile.Save()
 	fmt.Println("Updating Complete!")
 }
 
-func procssRow(wg *sync.WaitGroup, file *excelize.File, sheet string, rowIndex int, resultsCh chan<- struct {
+func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int, resultsCh chan<- struct {
 	id    string
 	index int
 }) {
 	defer wg.Done()
 
-	results_cell, err := file.GetCellValue(sheet, "C"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
+    contents := *file
+
+	results_cell := contents[rowIndex][2]
 
 	if results_cell == "Match" {
-		id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(rowIndex))
-		if err != nil {
-			log.Fatal(err)
-		}
+		id := contents[rowIndex][0]
 
 		resultsCh <- struct {
 			id    string
@@ -273,7 +95,7 @@ func procssRow(wg *sync.WaitGroup, file *excelize.File, sheet string, rowIndex i
 	}
 }
 
-func updateMainFile(mainFile *excelize.File, file *excelize.File, resultsCh <-chan struct {
+func findMatches(mainFile *excelize.File, file *[][]string, resultsCh <-chan struct {
 	id    string
 	index int
 }) {
@@ -295,86 +117,59 @@ func updateMainFile(mainFile *excelize.File, file *excelize.File, resultsCh <-ch
 		}
 		row, ok := mainMap[id]
 		if ok {
-			excelUpdaterMap(mainFile, file, row, result.index)
+			updateRow(mainFile, file, row, result.index)
 		} else {
 			numberOfRows++
-			excelUpdaterMap(mainFile, file, numberOfRows, result.index)
+			updateRow(mainFile, file, numberOfRows, result.index)
 		}
 	}
 
 	mainFile.Save()
 }
 
-func excelUpdaterMap(mainFile *excelize.File, file *excelize.File, mainRowIndex, rowIndex int) {
+func updateRow(mainFile *excelize.File, file *[][]string, mainRowIndex, rowIndex int) {
 
-    sheet := "Sheet1"
 	mainSheet := "GeocodeResults (2)"
+    contents := *file
 
-	id, err := file.GetCellValue(sheet, "A"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	originalAddress, err := file.GetCellValue(sheet, "B"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	match, err := file.GetCellValue(sheet, "C"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	exact, err := file.GetCellValue(sheet, "D"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	address, err := file.GetCellValue(sheet, "E"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	coordinates, err := file.GetCellValue(sheet, "F"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	unk, err := file.GetCellValue(sheet, "G"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	side, err := file.GetCellValue(sheet, "H"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	state_id, err := file.GetCellValue(sheet, "I"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	county, err := file.GetCellValue(sheet, "J"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	group, err := file.GetCellValue(sheet, "K"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	block, err := file.GetCellValue(sheet, "L"+strconv.Itoa(rowIndex))
-	if err != nil {
-		log.Fatal(err)
-	}
+    id := contents[rowIndex][0]
+    originalAddress := contents[rowIndex][1]
+    match := contents[rowIndex][2]
+    exact := contents[rowIndex][3]
+    address := contents[rowIndex][4]
+    coordinates := contents[rowIndex][5]
+    unk := contents[rowIndex][6]
+    side := contents[rowIndex][7]
+    state_id := contents[rowIndex][8]
+    county := contents[rowIndex][9]
+    group := contents[rowIndex][10]
+    block := contents[rowIndex][11]
 
 	id_int, err := strconv.Atoi(id)
+    if err != nil {
+        fmt.Println("Not a number:", id)
+        return
+    }
 	state_id_int, err := strconv.Atoi(state_id)
+    if err != nil {
+        fmt.Println("Not a number:", id)
+        return
+    }
 	county_int, err := strconv.Atoi(county)
+    if err != nil {
+        fmt.Println("Not a number:", id)
+        return
+    }
 	group_int, err := strconv.Atoi(group)
+    if err != nil {
+        fmt.Println("Not a number:", id)
+        return
+    }
 	block_int, err := strconv.Atoi(block)
+    if err != nil {
+        fmt.Println("Not a number:", id)
+        return
+    }
 
 	mainFile.SetCellInt(mainSheet, "A"+strconv.Itoa(mainRowIndex), id_int)
 	mainFile.SetCellStr(mainSheet, "B"+strconv.Itoa(mainRowIndex), originalAddress)
@@ -390,7 +185,7 @@ func excelUpdaterMap(mainFile *excelize.File, file *excelize.File, mainRowIndex,
 	mainFile.SetCellInt(mainSheet, "L"+strconv.Itoa(mainRowIndex), block_int)
 }
 
-func mapConverter(file *excelize.File) map[int]int {
+func createMainFileMap(file *excelize.File) map[int]int {
 	sheet := "GeocodeResults (2)"
 
 	rows, err := file.GetRows(sheet)
@@ -418,3 +213,4 @@ func mapConverter(file *excelize.File) map[int]int {
 
 	return mainMap
 }
+
