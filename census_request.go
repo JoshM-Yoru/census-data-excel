@@ -1,29 +1,105 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"os/exec"
-
-	"log"
+	"io"
+	"mime/multipart"
+	"net/http"
 	"os"
+
+	"github.com/schollz/progressbar/v3"
 )
 
-func curlRequest() {
-    fmt.Println("Querying Census.gov for address matches...")
+func httpFilePost() {
+	fmt.Println("Querying Census.gov for address matches...")
 
-    curl := "curl"
-	curlArgs := []string{"--form", "addressFile=@data.csv", "--form", "benchmark=Public_AR_Current", "--form", "vintage=Current_Current", "https://geocoding.geo.census.gov/geocoder/geographies/addressbatch", "--output", "Results.csv"}
+	apiEndpoint := "https://geocoding.geo.census.gov/geocoder/geographies/addressbatch"
 
-    cmd := exec.Command(curl, curlArgs...)
-
-    cmd.Stdout = os.Stdout
-    cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
+	file, err := os.Open("data.csv")
 	if err != nil {
-	    log.Fatal(err)
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		fmt.Println("Error getting file info:", err)
+		return
+	}
+	fileSize := fileInfo.Size()
+
+	body := &bytes.Buffer{}
+
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("addressFile", "data.csv")
+	if err != nil {
+		fmt.Println("Error creating form file:", err)
+		return
 	}
 
-	fmt.Println("Curl command executed successfully!")
+	bar := progressbar.DefaultBytes(
+		fileSize,
+		"Uploading",
+	)
 
+	multiWriter := io.MultiWriter(part, bar)
+
+	_, err = io.Copy(multiWriter, file)
+	if err != nil {
+		fmt.Println("Error copying file content:", err)
+		return
+	}
+
+	writer.WriteField("benchmark", "Public_AR_Current")
+	writer.WriteField("vintage", "Current_Current")
+
+	writer.Close()
+
+	req, err := http.NewRequest("POST", apiEndpoint, body)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	fmt.Println("Waiting for a response...")
+
+	client := http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusOK {
+		outputFile, err := os.Create("Results.csv")
+		if err != nil {
+			fmt.Println("Error creating output file:", err)
+			return
+		}
+		defer outputFile.Close()
+
+		responseSize := res.ContentLength
+		downloadBar := progressbar.DefaultBytes(
+			responseSize,
+			"Downloading",
+		)
+
+		multiWriterDownload := io.MultiWriter(outputFile, downloadBar)
+
+		_, err = io.Copy(multiWriterDownload, res.Body)
+		if err != nil {
+			fmt.Println("Error copying response to file:", err)
+			return
+		}
+
+		fmt.Println("File uploaded successfully!")
+	} else {
+		fmt.Println("Error uploading file. Status code:", res.StatusCode)
+	}
 }
