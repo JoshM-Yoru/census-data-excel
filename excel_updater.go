@@ -11,7 +11,12 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"github.com/xuri/excelize/v2"
 )
+
 var mainMap map[int]int
+var rowsUpdated int
+var rowsAdded int
+
+var wgFindMatches sync.WaitGroup
 
 func updater() {
 
@@ -37,7 +42,6 @@ func updater() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	sheet := "Sheet1"
 
 	numberOfRows := len(csvMatrix)
@@ -65,7 +69,9 @@ func updater() {
 		close(resultsCh)
 	}()
 
+    wgFindMatches.Add(1)
 	go findMatches(mainFile, &csvMatrix, resultsCh)
+    wgFindMatches.Wait()
 
 	for i := 1; i <= numberOfRows; i++ {
 		bar.Add(1)
@@ -73,6 +79,9 @@ func updater() {
 
 	mainFile.Save()
 	fmt.Println("Updating Complete!")
+	fmt.Println("Number of Rows Updated: ", rowsUpdated)
+	fmt.Println("Number of Rows Added: ", rowsAdded)
+	fmt.Println("Number of Addresses Not Found: ", numberOfRows-(rowsAdded+rowsUpdated))
 }
 
 func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int, resultsCh chan<- struct {
@@ -81,7 +90,7 @@ func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int
 }) {
 	defer wg.Done()
 
-    contents := *file
+	contents := *file
 
 	results_cell := contents[rowIndex][2]
 
@@ -99,6 +108,8 @@ func findMatches(mainFile *excelize.File, file *[][]string, resultsCh <-chan str
 	id    string
 	index int
 }) {
+    defer wgFindMatches.Done()
+
 	mainSheet := "GeocodeResults (2)"
 
 	rows, err := mainFile.GetRows(mainSheet)
@@ -108,68 +119,68 @@ func findMatches(mainFile *excelize.File, file *[][]string, resultsCh <-chan str
 	}
 
 	numberOfRows := len(rows)
-
 	for result := range resultsCh {
 		id, err := strconv.Atoi(result.id)
 		if err != nil {
 			fmt.Println("Unable to convert to int:", err)
 			return
 		}
+
 		row, ok := mainMap[id]
 		if ok {
+			rowsUpdated++
 			updateRow(mainFile, file, row, result.index)
 		} else {
 			numberOfRows++
+			rowsAdded++
 			updateRow(mainFile, file, numberOfRows, result.index)
 		}
 	}
-
-	mainFile.Save()
 }
 
 func updateRow(mainFile *excelize.File, file *[][]string, mainRowIndex, rowIndex int) {
 
 	mainSheet := "GeocodeResults (2)"
-    contents := *file
+	contents := *file
 
-    id := contents[rowIndex][0]
-    originalAddress := contents[rowIndex][1]
-    match := contents[rowIndex][2]
-    exact := contents[rowIndex][3]
-    address := contents[rowIndex][4]
-    coordinates := contents[rowIndex][5]
-    unk := contents[rowIndex][6]
-    side := contents[rowIndex][7]
-    state_id := contents[rowIndex][8]
-    county := contents[rowIndex][9]
-    group := contents[rowIndex][10]
-    block := contents[rowIndex][11]
+	id := contents[rowIndex][0]
+	originalAddress := contents[rowIndex][1]
+	match := contents[rowIndex][2]
+	exact := contents[rowIndex][3]
+	address := contents[rowIndex][4]
+	coordinates := contents[rowIndex][5]
+	unk := contents[rowIndex][6]
+	side := contents[rowIndex][7]
+	state_id := contents[rowIndex][8]
+	county := contents[rowIndex][9]
+	group := contents[rowIndex][10]
+	block := contents[rowIndex][11]
 
 	id_int, err := strconv.Atoi(id)
-    if err != nil {
-        fmt.Println("Not a number:", id)
-        return
-    }
+	if err != nil {
+		fmt.Println("Not a number:", id)
+		return
+	}
 	state_id_int, err := strconv.Atoi(state_id)
-    if err != nil {
-        fmt.Println("Not a number:", id)
-        return
-    }
+	if err != nil {
+		fmt.Println("Not a number:", id)
+		return
+	}
 	county_int, err := strconv.Atoi(county)
-    if err != nil {
-        fmt.Println("Not a number:", id)
-        return
-    }
+	if err != nil {
+		fmt.Println("Not a number:", id)
+		return
+	}
 	group_int, err := strconv.Atoi(group)
-    if err != nil {
-        fmt.Println("Not a number:", id)
-        return
-    }
+	if err != nil {
+		fmt.Println("Not a number:", id)
+		return
+	}
 	block_int, err := strconv.Atoi(block)
-    if err != nil {
-        fmt.Println("Not a number:", id)
-        return
-    }
+	if err != nil {
+		fmt.Println("Not a number:", id)
+		return
+	}
 
 	mainFile.SetCellInt(mainSheet, "A"+strconv.Itoa(mainRowIndex), id_int)
 	mainFile.SetCellStr(mainSheet, "B"+strconv.Itoa(mainRowIndex), originalAddress)
@@ -213,4 +224,3 @@ func createMainFileMap(file *excelize.File) map[int]int {
 
 	return mainMap
 }
-
