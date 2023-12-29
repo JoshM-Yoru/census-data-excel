@@ -12,9 +12,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-var mainMap map[int]int
+var mainMap map[int]RowInfo
 var rowsUpdated int
 var rowsAdded int
+var addressNotFound int
 
 var wgFindMatches sync.WaitGroup
 
@@ -69,9 +70,9 @@ func updater() {
 		close(resultsCh)
 	}()
 
-    wgFindMatches.Add(1)
+	wgFindMatches.Add(1)
 	go findMatches(mainFile, &csvMatrix, resultsCh)
-    wgFindMatches.Wait()
+	wgFindMatches.Wait()
 
 	for i := 1; i <= numberOfRows; i++ {
 		bar.Add(1)
@@ -81,7 +82,17 @@ func updater() {
 	fmt.Println("Updating Complete!")
 	fmt.Println("Number of Rows Updated: ", rowsUpdated)
 	fmt.Println("Number of Rows Added: ", rowsAdded)
-	fmt.Println("Number of Addresses Not Found: ", numberOfRows-(rowsAdded+rowsUpdated))
+	fmt.Println("Number of Addresses Not Found: ", addressNotFound)
+
+	outputFile, err := os.Create("Numbers.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+    defer outputFile.Close()
+
+    outputFile.WriteString("Number of Rows Updated: " + fmt.Sprint(rowsUpdated))
+    outputFile.WriteString("Number of Rows Added: " + fmt.Sprint(rowsAdded))
+    outputFile.WriteString("Number of Addresses Not Found: " + fmt.Sprint(addressNotFound))
 }
 
 func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int, resultsCh chan<- struct {
@@ -101,6 +112,8 @@ func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int
 			id    string
 			index int
 		}{id: id, index: rowIndex}
+	} else {
+		addressNotFound++
 	}
 }
 
@@ -108,7 +121,7 @@ func findMatches(mainFile *excelize.File, file *[][]string, resultsCh <-chan str
 	id    string
 	index int
 }) {
-    defer wgFindMatches.Done()
+	defer wgFindMatches.Done()
 
 	mainSheet := "GeocodeResults (2)"
 
@@ -127,9 +140,9 @@ func findMatches(mainFile *excelize.File, file *[][]string, resultsCh <-chan str
 		}
 
 		row, ok := mainMap[id]
-		if ok {
+		if ok && row.Status != "Match" {
 			rowsUpdated++
-			updateRow(mainFile, file, row, result.index)
+			updateRow(mainFile, file, row.Row, result.index)
 		} else {
 			numberOfRows++
 			rowsAdded++
@@ -196,7 +209,7 @@ func updateRow(mainFile *excelize.File, file *[][]string, mainRowIndex, rowIndex
 	mainFile.SetCellInt(mainSheet, "L"+strconv.Itoa(mainRowIndex), block_int)
 }
 
-func createMainFileMap(file *excelize.File) map[int]int {
+func createMainFileMap(file *excelize.File) map[int]RowInfo {
 	sheet := "GeocodeResults (2)"
 
 	rows, err := file.GetRows(sheet)
@@ -206,7 +219,7 @@ func createMainFileMap(file *excelize.File) map[int]int {
 
 	numberOfRows := len(rows)
 
-	mainMap := make(map[int]int)
+	mainMap := make(map[int]RowInfo)
 
 	for i := 1; i <= numberOfRows; i++ {
 		results_cell, err := file.GetCellValue(sheet, "A"+strconv.Itoa(i))
@@ -218,9 +231,21 @@ func createMainFileMap(file *excelize.File) map[int]int {
 			if err != nil {
 				log.Fatal("Not a string: ", err)
 			}
-			mainMap[key] = i
+			status, err := file.GetCellValue(sheet, "C"+strconv.Itoa(i))
+			if err != nil {
+				log.Fatal("Invalid cell: ", err)
+			}
+			mainMap[key] = RowInfo{
+				Row:    i,
+				Status: status,
+			}
 		}
 	}
 
 	return mainMap
+}
+
+type RowInfo struct {
+	Row    int
+	Status string
 }
