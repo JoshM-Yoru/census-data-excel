@@ -39,7 +39,7 @@ func updater() {
 		os.Exit(0)
 	}
 
-	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File - Copy(3).xlsx")
+	mainFile, err := excelize.OpenFile("GeocodeResults_Main_File.xlsx")
 	if err != nil {
 		log.Fatal(err)
 	}
