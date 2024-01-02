@@ -90,9 +90,9 @@ func updater() {
 	}
     defer outputFile.Close()
 
-    outputFile.WriteString("Number of Rows Updated: " + fmt.Sprint(rowsUpdated))
-    outputFile.WriteString("Number of Rows Added: " + fmt.Sprint(rowsAdded))
-    outputFile.WriteString("Number of Addresses Not Found: " + fmt.Sprint(addressNotFound))
+    outputFile.WriteString("Number of Rows Updated: " + fmt.Sprint(rowsUpdated) + "\n")
+    outputFile.WriteString("Number of Rows Added: " + fmt.Sprint(rowsAdded) + "\n")
+    outputFile.WriteString("Number of Addresses Not Found: " + fmt.Sprint(addressNotFound) + "\n")
 }
 
 func processRow(wg *sync.WaitGroup, file *[][]string, sheet string, rowIndex int, resultsCh chan<- struct {
